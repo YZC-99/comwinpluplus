@@ -5,12 +5,12 @@ import torch.nn as nn
 class TriUNet_before2(nn.Module):
     def __init__(self,
                  num_classes,
-                 bb_pretrained=True,
-                 inplace_seven=False):
+                 backbone = 'resnet18',
+                 bb_pretrained=True):
         super().__init__()
-        self.branch1 = ResUNet_dsba_before2(num_classes=num_classes,bb_pretrained=bb_pretrained,inplace_seven=inplace_seven)
-        self.branch2 = ResUNet_dsba_before2(num_classes=num_classes,bb_pretrained=bb_pretrained,inplace_seven=inplace_seven)
-        self.branch3 = ResUNet_dsba_before2(num_classes=num_classes,bb_pretrained=bb_pretrained,inplace_seven=inplace_seven)
+        self.branch1 = ResUNet_dsba_before2(num_classes=num_classes,backbone=backbone,bb_pretrained=bb_pretrained)
+        self.branch2 = ResUNet_dsba_before2(num_classes=num_classes,backbone=backbone,bb_pretrained=bb_pretrained)
+        self.branch3 = ResUNet_dsba_before2(num_classes=num_classes,backbone=backbone,bb_pretrained=bb_pretrained)
 
     def forward(self, data, pseudo_labels=None, step=1, forward_step=1):
         # if not self.training:

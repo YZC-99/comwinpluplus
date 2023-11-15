@@ -22,6 +22,9 @@ from model.unet import ResUNet_dsba_before2
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed',type=int,default=42)
+
+parser.add_argument('--backbone',type=str,default='resnet34')
+
 parser.add_argument('--amp',type=bool,default=True)
 parser.add_argument('--num_classes',type=int,default=3)
 parser.add_argument('--base_lr',type=float,default=0.01)
@@ -122,7 +125,7 @@ if __name__ == '__main__':
 
     # init model
     scale_num = 2
-    model = TriUNet_before2(num_classes=args.num_classes)
+    model = TriUNet_before2(num_classes=args.num_classes,backbone=args.backbone)
     model.cuda()
 
     # init dataset

@@ -275,13 +275,15 @@ class ResUNet(nn.Module):
                 }
 
 class ResUNet_dsba_before2(nn.Module):
-    def __init__(self, num_classes,bb_pretrained=True,n_filters=16,inplace_seven=False,window_size=2,self_atten_head_num = 1,sparse_attn=False):
+    def __init__(self, num_classes,backbone = 'resnet18',bb_pretrained=True,n_filters=16,window_size=2,self_atten_head_num = 1,sparse_attn=False):
         super(ResUNet_dsba_before2, self).__init__()
+
+        backbone_zoo = {'resnet18':resnet18,'resnet34':resnet34,'resnet50':resnet50,'resnet101':resnet101}
         self.window_size = window_size
         self.sparse_attn = sparse_attn
         self.window_eight = WindowAttention2D(n_filters * 2, window_size, num_heads=self_atten_head_num)
 
-        self.backbone = resnet50(pretrained=bb_pretrained, inplace_seven=inplace_seven)
+        self.backbone = backbone_zoo[backbone](pretrained=bb_pretrained)
         self.center = _DecoderBlock(2048, 2048, 2048)
         self.dec5 = _DecoderBlock(4096, 2048, 1024)
         self.dec4 = _DecoderBlock(2048, 1024, 512)
