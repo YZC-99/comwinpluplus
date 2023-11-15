@@ -284,27 +284,54 @@ class ResUNet_dsba_before2(nn.Module):
         self.window_eight = WindowAttention2D(n_filters * 2, window_size, num_heads=self_atten_head_num)
 
         self.backbone = backbone_zoo[backbone](pretrained=bb_pretrained)
-        self.center = _DecoderBlock(2048, 2048, 2048)
-        self.dec5 = _DecoderBlock(4096, 2048, 1024)
-        self.dec4 = _DecoderBlock(2048, 1024, 512)
-        self.dec3 = _DecoderBlock(1024, 512, 256)
 
-        self.block_two_out = nn.Conv2d(256,num_classes, kernel_size=1)
+        decoder_inchannels = 2048
+        if backbone == 'resnet18' or backbone == 'resnet34':
+            decoder_inchannels = 512
 
-        self.dec2 = _DecoderBlock(512, 256, 128)
+        self.center = _DecoderBlock(decoder_inchannels, decoder_inchannels, decoder_inchannels)
+        self.dec5 = _DecoderBlock(decoder_inchannels * 2, decoder_inchannels, decoder_inchannels / 2)
+        self.dec4 = _DecoderBlock(decoder_inchannels, decoder_inchannels / 2, decoder_inchannels / 4)
+        self.dec3 = _DecoderBlock(decoder_inchannels / 2, decoder_inchannels / 4, decoder_inchannels / 8)
+
+        self.block_two_out = nn.Conv2d(decoder_inchannels / 8, num_classes, kernel_size=1)
+
+        self.dec2 = _DecoderBlock(decoder_inchannels / 4, decoder_inchannels / 8, decoder_inchannels / 16)
         self.dec1 = nn.Sequential(
-            nn.Conv2d(128, 64, kernel_size=3),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(decoder_inchannels / 16, decoder_inchannels / 32, kernel_size=3),
+            nn.BatchNorm2d(decoder_inchannels / 32),
             nn.ReLU(inplace=True),
-            nn.Conv2d(64, 64, kernel_size=3),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(decoder_inchannels / 32, decoder_inchannels / 32, kernel_size=3),
+            nn.BatchNorm2d(decoder_inchannels / 32),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(decoder_inchannels / 32, decoder_inchannels / 32, kernel_size=2, stride=2),
         )
 
+        self.classifier = nn.Conv2d(decoder_inchannels / 32, num_classes, kernel_size=1)
+        self.classifier2 = nn.Conv2d(decoder_inchannels / 32, num_classes, kernel_size=1)
 
-        self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
-        self.classifier2 = nn.Conv2d(64, num_classes, kernel_size=1)
+        ######
+        # self.center = _DecoderBlock(2048, 2048, 2048)
+        # self.dec5 = _DecoderBlock(4096, 2048, 1024)
+        # self.dec4 = _DecoderBlock(2048, 1024, 512)
+        # self.dec3 = _DecoderBlock(1024, 512, 256)
+        #
+        # self.block_two_out = nn.Conv2d(256,num_classes, kernel_size=1)
+        #
+        # self.dec2 = _DecoderBlock(512, 256, 128)
+        # self.dec1 = nn.Sequential(
+        #     nn.Conv2d(128, 64, kernel_size=3),
+        #     nn.BatchNorm2d(64),
+        #     nn.ReLU(inplace=True),
+        #     nn.Conv2d(64, 64, kernel_size=3),
+        #     nn.BatchNorm2d(64),
+        #     nn.ReLU(inplace=True),
+        #     nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2),
+        # )
+        #
+        #
+        # self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
+        # self.classifier2 = nn.Conv2d(64, num_classes, kernel_size=1)
 
         self.tanh =  nn.Tanh()
 
